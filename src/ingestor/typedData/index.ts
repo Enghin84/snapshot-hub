@@ -119,7 +119,7 @@ export default async function ingestor(body) {
   try {
     await writer[type].verify(legacyBody);
   } catch (e) {
-    console.log('[ingestor]', e);
+    console.log('[ingestor error]', e);
     return Promise.reject(e);
   }
 

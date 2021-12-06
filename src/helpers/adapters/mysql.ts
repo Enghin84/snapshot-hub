@@ -211,3 +211,20 @@ export async function getProposal(space, id) {
   const proposals = await db.queryAsync(query, [space, id]);
   return proposals[0];
 }
+
+export async function saveSpace(spaceId, settings) {
+  const ts = (Date.now() / 1e3).toFixed();
+  const query =
+    'INSERT INTO spaces (id, settings, created_at, updated_at) VALUES (?, ?, ?, ?)';
+  try {
+    await db.queryAsync(query, [spaceId, JSON.stringify(settings), ts, ts]);
+  } catch (e) {
+    return Promise.reject('Cannot save space');
+  }
+}
+
+export async function getSpaceDB(spaceId) {
+  const query = 'SELECT id, settings, verified FROM spaces where id=?';
+  const s = await db.queryAsync(query, [spaceId]);
+  return s[0];
+}

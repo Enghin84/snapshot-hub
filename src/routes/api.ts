@@ -9,12 +9,17 @@ import {
 } from '../helpers/spaces';
 import relayer from '../helpers/relayer';
 import { sendError } from '../helpers/utils';
-import { addOrUpdateSpace, loadSpace } from '../helpers/adapters/mysql';
+import {
+  addOrUpdateSpace,
+  loadSpace,
+  saveSpace
+} from '../helpers/adapters/mysql';
 import ingestor from '../ingestor';
 import pkg from '../../package.json';
 import db from '../helpers/mysql';
 import { hashPersonalMessage } from '../ingestor/personalSign/utils';
 import { getProposalScores } from '../scores';
+import { verify } from '../writer/space';
 
 const gateway = gateways[0];
 
@@ -57,7 +62,9 @@ router.get('/explore', (req, res) => {
       ? networks[space.network] + 1
       : 1;
 
-    const uniqueStrategies = new Set<string>(space.strategies.map((strategy) =>strategy.name));
+    const uniqueStrategies = new Set<string>(
+      space.strategies.map(strategy => strategy.name)
+    );
     uniqueStrategies.forEach(strategyName => {
       strategies[strategyName] = strategies[strategyName]
         ? strategies[strategyName] + 1
@@ -177,6 +184,19 @@ router.post('/msg', async (req, res) => {
   try {
     const result = await ingestor(req.body, 'typed-data');
     return res.json(result);
+  } catch (e) {
+    return sendError(res, e);
+  }
+});
+
+router.post('/spaces', async (req, res) => {
+  try {
+    await verify(req.body);
+    await saveSpace(req.body.daoAddress, req.body.settings);
+    return res.json({
+      id: req.body.daoAddress,
+      settings: req.body.settings
+    });
   } catch (e) {
     return sendError(res, e);
   }

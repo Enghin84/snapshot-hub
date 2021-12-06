@@ -12,6 +12,7 @@ export default async function(body, version) {
       return await typedData(body);
     }
   } catch (e) {
+    console.log('ingestor error', e);
     return Promise.reject(e);
   }
 }
